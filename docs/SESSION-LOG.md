@@ -65,6 +65,12 @@ Moved all persistent data from internal SSD to external SSD:
 - Secrets scrubbed: DB password, email, Tailscale IPs
 - README written as portfolio documentation
 
+### Auto-login + screen lock
+- Enabled auto-login in System Settings → Users & Groups
+- Created `com.mitsheth.screen-lock.plist` — locks screen 5 seconds after login
+- Effect: reboot → auto-login → services start → screen locks automatically
+- Solves: FileVault/login screen blocking unattended service recovery after power loss
+
 ### Fix: Postgres log rotation path
 - Updated `PG_LOG_DIR` in nightly-maintenance.sh from `./postgres/log` to `/Volumes/mit/immich/postgres/log`
 - Old path no longer valid after storage migration to external SSD

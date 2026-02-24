@@ -20,8 +20,8 @@ These settings require GUI interaction and can't be fully automated. They're doc
 - [x] Reduce Transparency — On
 
 ### Users & Groups
-- [ ] Consider: Auto-login (enables unattended reboot recovery)
-  - If enabled, add Login Item that locks screen immediately
+- [x] Auto-login enabled (enables unattended reboot recovery)
+- [x] `com.mitsheth.screen-lock.plist` locks screen 5s after login
 
 ### Bluetooth
 - [x] Disable if no wireless peripherals connected
