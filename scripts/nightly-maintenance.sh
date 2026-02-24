@@ -123,7 +123,7 @@ fi
 # =========================================
 log "--- Part 4: Postgres Log Rotation ---"
 
-PG_LOG_DIR="/Users/mitsheth/immich-app/postgres/log"
+PG_LOG_DIR="/Volumes/mit/immich/postgres/log"
 if [ -d "$PG_LOG_DIR" ]; then
     OLD_LOGS=$(find "$PG_LOG_DIR" -name "*.log" -type f -mtime +30 | wc -l | tr -d ' ')
     if [ "$OLD_LOGS" -gt 0 ]; then

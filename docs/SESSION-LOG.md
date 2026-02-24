@@ -64,3 +64,7 @@ Moved all persistent data from internal SSD to external SSD:
 - This repo initialized with all scripts, configs, plists, docker-compose
 - Secrets scrubbed: DB password, email, Tailscale IPs
 - README written as portfolio documentation
+
+### Fix: Postgres log rotation path
+- Updated `PG_LOG_DIR` in nightly-maintenance.sh from `./postgres/log` to `/Volumes/mit/immich/postgres/log`
+- Old path no longer valid after storage migration to external SSD
