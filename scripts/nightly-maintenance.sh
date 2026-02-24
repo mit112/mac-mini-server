@@ -40,6 +40,7 @@ TASK_DRIVES=""
 TASK_SMART=""
 TASK_HS=""
 TASK_SEC=""
+TASK_SYNC=""
 
 log "========== Nightly Maintenance Started =========="
 
@@ -421,6 +422,100 @@ SECURITY:
 ====================================
 SECREPORT
 
+# =========================================
+# PART 12: Mac Mini Backup Sync
+# =========================================
+log "--- Part 12: Mac Mini Backup Sync ---"
+
+BACKUP_DEST="/Volumes/mit/Mac mini"
+SYNC_ERRORS=0
+SYNC_FOLDERS=0
+
+if [ ! -d "/Volumes/mit" ]; then
+    log "ERROR: /Volumes/mit not mounted. Skipping Mac Mini backup."
+    TASK_SYNC="❌ mit SSD not mounted"
+else
+    mkdir -p "$BACKUP_DEST"
+
+    # Folders to sync (source -> destination subfolder)
+    declare -a SYNC_SOURCES=(
+        "/Users/mitsheth/Desktop"
+        "/Users/mitsheth/Documents"
+        "/Users/mitsheth/Downloads"
+        "/Users/mitsheth/mac-mini-server"
+        "/Users/mitsheth/immich-app"
+        "/Users/mitsheth/adguard-home"
+    )
+
+    # Dotfiles to sync
+    declare -a SYNC_DOTFILES=(
+        "/Users/mitsheth/.zshrc"
+        "/Users/mitsheth/.zprofile"
+        "/Users/mitsheth/.gitconfig"
+    )
+
+    for SRC in "${SYNC_SOURCES[@]}"; do
+        FOLDER_NAME=$(basename "$SRC")
+        if [ -d "$SRC" ]; then
+            log "Syncing $FOLDER_NAME..."
+            rsync -a --delete \
+                --exclude='.DS_Store' \
+                --exclude='._*' \
+                --exclude='node_modules' \
+                --exclude='.git' \
+                --exclude='__pycache__' \
+                --exclude='*.pyc' \
+                "$SRC/" "$BACKUP_DEST/$FOLDER_NAME/" >> "$LOG_FILE" 2>&1
+            if [ $? -eq 0 ]; then
+                SYNC_FOLDERS=$((SYNC_FOLDERS + 1))
+                log "  $FOLDER_NAME synced OK"
+            else
+                SYNC_ERRORS=$((SYNC_ERRORS + 1))
+                log "  WARNING: $FOLDER_NAME had sync errors"
+            fi
+        else
+            log "  Skipping $FOLDER_NAME (not found)"
+        fi
+    done
+
+    # Sync dotfiles into a dotfiles subfolder
+    mkdir -p "$BACKUP_DEST/dotfiles"
+    for DOTFILE in "${SYNC_DOTFILES[@]}"; do
+        if [ -f "$DOTFILE" ]; then
+            cp "$DOTFILE" "$BACKUP_DEST/dotfiles/" 2>/dev/null
+        fi
+    done
+    log "Dotfiles synced"
+
+    # Sync LaunchAgents
+    mkdir -p "$BACKUP_DEST/LaunchAgents"
+    rsync -a --delete \
+        --include='com.mitsheth.*' \
+        --exclude='*' \
+        /Users/mitsheth/Library/LaunchAgents/ "$BACKUP_DEST/LaunchAgents/" >> "$LOG_FILE" 2>&1
+    log "LaunchAgents synced"
+
+    BACKUP_SIZE=$(du -sh "$BACKUP_DEST" 2>/dev/null | cut -f1)
+    if [ $SYNC_ERRORS -eq 0 ]; then
+        TASK_SYNC="✅ $SYNC_FOLDERS folders synced ($BACKUP_SIZE total)"
+    else
+        TASK_SYNC="⚠️ $SYNC_FOLDERS OK, $SYNC_ERRORS errors ($BACKUP_SIZE total)"
+    fi
+    log "Mac Mini backup complete: $SYNC_FOLDERS folders, $SYNC_ERRORS errors, $BACKUP_SIZE total"
+
+    # Append to health report
+    cat >> "$REPORT_FILE" << SYNCREPORT
+
+MAC MINI BACKUP:
+  Destination:     $BACKUP_DEST
+  Folders synced:  $SYNC_FOLDERS
+  Errors:          $SYNC_ERRORS
+  Total size:      $BACKUP_SIZE
+
+====================================
+SYNCREPORT
+fi
+
 # Inject task summary at the top of the report
 TASK_SUMMARY=$(cat << TASKS
 
@@ -434,6 +529,7 @@ TASKS RAN TONIGHT:
   Hammerspoon:       $TASK_HS
   SMART:             $TASK_SMART
   Security:          $TASK_SEC
+  Mac Mini Backup:   $TASK_SYNC
 TASKS
 )
 
@@ -459,14 +555,14 @@ osascript << EOF >> "$LOG_FILE" 2>&1
 tell application "Mail"
     set newMessage to make new outgoing message with properties {subject:"$SUBJECT", content:"$REPORT_CONTENT", visible:false}
     tell newMessage
-        make new to recipient at end of to recipients with properties {address:"YOUR_EMAIL@example.com"}
+        make new to recipient at end of to recipients with properties {address:"miteduc8@gmail.com"}
     end tell
     send newMessage
 end tell
 EOF
 
 if [ $? -eq 0 ]; then
-    log "Health report emailed to YOUR_EMAIL@example.com"
+    log "Health report emailed to miteduc8@gmail.com"
 else
     log "WARNING: Failed to send health report email"
 fi

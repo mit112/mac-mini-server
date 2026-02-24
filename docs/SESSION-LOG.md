@@ -79,3 +79,14 @@ Moved all persistent data from internal SSD to external SSD:
 ### Fix: Postgres log rotation path
 - Updated `PG_LOG_DIR` in nightly-maintenance.sh from `./postgres/log` to `/Volumes/mit/immich/postgres/log`
 - Old path no longer valid after storage migration to external SSD
+
+## 2026-02-23: Added Mac Mini Backup Sync (Part 12)
+
+### Nightly backup to external SSD
+- Added Part 12 to `nightly-maintenance.sh`: rsync-based backup of Mac mini folders to `/Volumes/mit/Mac mini/`
+- Syncs: Desktop, Documents, Downloads, mac-mini-server, immich-app, adguard-home
+- Syncs dotfiles (.zshrc, .zprofile, .gitconfig) to `dotfiles/` subfolder
+- Syncs custom LaunchAgents (com.mitsheth.*) to `LaunchAgents/` subfolder
+- Uses `--delete` flag to mirror removals, excludes .DS_Store, ._, node_modules, .git, __pycache__
+- Added `TASK_SYNC` to task summary and health report email
+- Replaces previous manual backup approach
