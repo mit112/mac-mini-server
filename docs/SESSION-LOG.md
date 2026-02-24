@@ -71,6 +71,11 @@ Moved all persistent data from internal SSD to external SSD:
 - Effect: reboot → auto-login → services start → screen locks automatically
 - Solves: FileVault/login screen blocking unattended service recovery after power loss
 
+### Added missing services to repo
+- AdGuard Home: docker-compose.yml, pf port redirect rules (53→5335), load script, LaunchDaemon
+- Job Search Stack: n8n + changedetection.io + Playwright docker-compose.yml
+- Both had secrets scrubbed (local IPs, passwords)
+
 ### Fix: Postgres log rotation path
 - Updated `PG_LOG_DIR` in nightly-maintenance.sh from `./postgres/log` to `/Volumes/mit/immich/postgres/log`
 - Old path no longer valid after storage migration to external SSD

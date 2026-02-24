@@ -90,7 +90,14 @@ mac-mini-server/
 ├── docker/
 │   ├── docker-compose.yml        # Immich stack (server, postgres, redis, ML)
 │   ├── hwaccel.ml.yml            # ML hardware acceleration options
-│   └── hwaccel.transcoding.yml   # Video transcoding acceleration options
+│   ├── hwaccel.transcoding.yml   # Video transcoding acceleration options
+│   ├── adguard-home/
+│   │   ├── docker-compose.yml    # AdGuard Home DNS ad blocker
+│   │   ├── pf-adguard.conf      # macOS packet filter port redirect (53→5335)
+│   │   └── load-pf-rules.sh     # Script to load pf rules
+│   └── job-search-stack/
+│       ├── docker-compose.yml    # n8n + changedetection.io + Playwright
+│       └── .env.example          # Credentials template
 ├── configs/
 │   ├── zshrc                     # Shell: 18 Rust CLI aliases + helpers
 │   ├── starship.toml             # Prompt: git, docker, swift, duration
