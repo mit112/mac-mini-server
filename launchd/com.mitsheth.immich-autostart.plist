@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mitsheth.immich-autostart</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/mitsheth/immich-app/backup-scripts/immich-autostart.sh</string>
+    </array>
+
+    <!-- Run once at login -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/mitsheth/immich-app/backup-scripts/logs/launchd-autostart-stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/mitsheth/immich-app/backup-scripts/logs/launchd-autostart-stderr.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

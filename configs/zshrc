@@ -1,0 +1,85 @@
+# =============================================================================
+# Mit's .zshrc
+# =============================================================================
+
+# --- PATH ---
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/opt/homebrew/opt/node@20/bin:$PATH"
+
+# --- Modern CLI Aliases (Rust replacements) ---
+alias ls="eza --icons --group-directories-first"
+alias ll="eza -la --icons --group-directories-first --git"
+alias lt="eza --tree --level=2 --icons"
+alias cat="bat --paging=never"
+alias grep="rg"
+alias find="fd"
+alias du="dust"
+alias ps="procs"
+alias sed="sd"
+alias diff="delta"
+alias top="btm"
+alias ping="gping"
+alias curl="xh"
+alias bench="hyperfine"
+
+# --- fzf (fuzzy finder) ---
+source <(fzf --zsh)
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='--height 40% --border --info=inline'
+
+# --- zoxide (smart cd) ---
+eval "$(zoxide init zsh)"
+alias cd="z"
+
+# --- Starship prompt ---
+eval "$(starship init zsh)"
+
+# --- Atuin (shell history) ---
+eval "$(atuin init zsh)"
+
+# --- direnv (per-directory env vars) ---
+eval "$(direnv hook zsh)"
+
+# --- Git: use delta as pager ---
+export GIT_PAGER="delta"
+
+# --- Yazi: cd into directory on exit ---
+function y() {
+    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+    yazi "$@" --cwd-file="$tmp"
+    if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+        builtin cd -- "$cwd"
+    fi
+    rm -f -- "$tmp"
+}
+
+# --- Live ripgrep + fzf search (open result in vim/nano) ---
+function rfv() {
+    rg --column --line-number --no-heading --color=always --smart-case "${*:-}" |
+    fzf --ansi --disabled \
+        --bind "start:reload:rg --column --line-number --no-heading --color=always --smart-case {q} || :" \
+        --bind "change:reload:rg --column --line-number --no-heading --color=always --smart-case {q} || :" \
+        --delimiter : \
+        --preview 'bat --style=full --color=always --highlight-line {2} {1}' \
+        --preview-window '~4,+{2}+4/3' \
+        --bind 'enter:become(nano +{2} {1})'
+}
+
+# --- Docker (OrbStack) ---
+export DOCKER_HOST="unix:///Users/mitsheth/.orbstack/run/docker.sock"
+
+# --- Quick helpers ---
+alias dps="docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'"
+alias dlogs="docker logs -f"
+alias immich-up="cd ~/immich-app && docker compose up -d"
+alias immich-down="cd ~/immich-app && docker compose down"
+alias immich-logs="docker logs -f immich_server"
+alias brewup="brew update && brew upgrade && brew cleanup"
+alias diskfree="df -h / /Volumes/mit /Volumes/T9 2>/dev/null"
+alias ports="lsof -iTCP -sTCP:LISTEN -n -P"
+alias myip="curl -s ifconfig.me && echo"
+alias flushdns="sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder && echo 'DNS flushed'"
+
+# Remote into Mac mini
+alias mini="open vnc://YOUR_TAILSCALE_IP"

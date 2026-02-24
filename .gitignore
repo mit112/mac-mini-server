@@ -1,0 +1,19 @@
+# Logs
+logs/
+*.log
+
+# Environment files with secrets
+.env
+
+# macOS
+.DS_Store
+._*
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Backup artifacts
+*.backup
+*.bak

@@ -1,0 +1,11 @@
+# SSH config for remote access to Mac mini via Tailscale
+# Place at ~/.ssh/config on your client machine (e.g., MacBook)
+
+Host mac-mini
+    HostName YOUR_TAILSCALE_IP
+    User YOUR_USERNAME
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h-%p
+    ControlPersist 10m
