@@ -39,12 +39,14 @@ The system follows the **Fission Pattern** — compute (internal SSD) and state 
          │                    │               re-pullable)
          ▼                    ▼
 ┌──────────────────────────────────┐
-│ Backup HDD "T9" (1TB)           │
-│ DISASTER RECOVERY                │
+│ Backup HDD "T9" (2TB)           │
+│ DISASTER RECOVERY + MEDIA        │
 │                                  │
-│ library/     ← nightly rsync     │
-│ db-backups/  ← nightly pg_dump   │
-│ system-config/ ← scripts, configs│
+│ immich backup/                   │
+│   ├── library/ ← nightly rsync  │
+│   └── db-backups/ ← pg_dump     │
+│ Songs/       ← 727 FLAC albums  │
+│ Content/     ← movies, shows    │
 └──────────────────────────────────┘
 ```
 
@@ -56,7 +58,7 @@ The system follows the **Fission Pattern** — compute (internal SSD) and state 
 | External SSD dies | All photos + DB gone | Restore library from T9 rsync, restore DB from T9 SQL dump, re-pull Docker images |
 | Both SSDs die | Everything gone | Restore from T9 (library + DB), bootstrap new Mac |
 | T9 dies | No backup redundancy | Replace drive, backups resume next night |
-| Mac mini dies | No compute | Buy new Mac mini, plug in SSD, run bootstrap |
+| Mac mini dies | No compute | Buy new Mac mini, plug in SSD, run bootstrap, restore configs from mit SSD backup |
 
 ## Automation Flow
 
@@ -89,7 +91,8 @@ Midnight
       ├── Part 8: Hammerspoon event summary
       ├── Part 9: SMART drive health check
       ├── Part 10: Security audit (LuLu, SSH, FileVault)
-      └── Part 11: Email report via Apple Mail
+      ├── Part 11: Mac mini folder sync (rsync to mit SSD)
+      └── Part 12: Email report via Apple Mail
 
 Sunday 1 AM
  └── LaunchAgent: weekly-cleanup.sh

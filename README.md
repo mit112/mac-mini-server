@@ -8,8 +8,7 @@ This Mac mini runs 24/7 as a personal infrastructure node, serving:
 
 - **[Immich](https://immich.app)** — Self-hosted photo/video management (44,000+ assets, ML-powered search, face recognition)
 - **Network Services** — AdGuard Home (DNS-level ad blocking), Content Caching (Apple device updates)
-- **Job Search Automation** — n8n + changedetection.io pipeline that scrapes job boards, scores matches with AI, sends Telegram alerts
-- **Nightly Health Monitoring** — 11-part automated health report emailed every midnight
+- **Nightly Health Monitoring** — 12-part automated health report emailed every midnight
 
 ## Architecture
 
@@ -31,6 +30,7 @@ This Mac mini runs 24/7 as a personal infrastructure node, serving:
 │                                                              │
 │  Automation Layer (launchd + Hammerspoon)                    │
 │  ├── Nightly: backup → brew update → prune → health report  │
+│  ├── Nightly: Mac mini folder sync to external SSD          │
 │  ├── Watchdog: container health check every 12h             │
 │  ├── Weekly: dev cache cleanup (Xcode, npm, simulators)     │
 │  ├── Monthly: ~/Downloads auto-organization                 │
@@ -53,7 +53,7 @@ This Mac mini runs 24/7 as a personal infrastructure node, serving:
 │  Backup Drive (T9)   │
 │  ├── library mirror  │
 │  ├── DB SQL dumps    │
-│  └── system configs  │
+│  └── media & music   │
 └──────────────────────┘
 ```
 
@@ -63,7 +63,7 @@ This Mac mini runs 24/7 as a personal infrastructure node, serving:
 
 **Self-Healing Automation** — Hammerspoon reacts to system events in real-time (drive unmounts, network drops, sleep/wake). The watchdog script is a safety net. Together they ensure Immich recovers from any transient failure without human intervention.
 
-**Nightly Observability** — Every midnight, an 11-part health report runs: Immich backup, Homebrew updates, Docker pruning, Postgres log rotation, disk space checks, drive mount verification, SMART health, security audit, and Hammerspoon event summary. Emailed automatically.
+**Nightly Observability** — Every midnight, a 12-part health report runs: Immich backup, Homebrew updates, Docker pruning, Postgres log rotation, disk space checks, drive mount verification, SMART health, security audit, Hammerspoon event summary, and Mac mini folder sync. Emailed automatically.
 
 **Disposable Hardware** — The `mac-mini-bootstrap.sh` script rebuilds the entire system on a fresh macOS install: 29 Homebrew packages, 25 casks, shell config, Git config, LaunchAgents, power management. Manual steps are documented, not forgotten.
 
@@ -77,7 +77,7 @@ mac-mini-server/
 │   ├── mac-mini-bootstrap.sh     # Full system rebuild script (284 lines)
 │   ├── immich-autostart.sh       # Boot: start OrbStack + Immich containers
 │   ├── immich-backup.sh          # Nightly: DB dump + library rsync to T9
-│   ├── nightly-maintenance.sh    # Nightly: 11-part health check + email
+│   ├── nightly-maintenance.sh    # Nightly: 12-part health check + email
 │   ├── watchdog.sh               # Every 12h: container health + auto-restart
 │   ├── weekly-cleanup.sh         # Sunday: Xcode/npm/simulator cache purge
 │   └── downloads-organize.sh     # Monthly: sort ~/Downloads by file type
@@ -95,9 +95,6 @@ mac-mini-server/
 │   │   ├── docker-compose.yml    # AdGuard Home DNS ad blocker
 │   │   ├── pf-adguard.conf      # macOS packet filter port redirect (53→5335)
 │   │   └── load-pf-rules.sh     # Script to load pf rules
-│   └── job-search-stack/
-│       ├── docker-compose.yml    # n8n + changedetection.io + Playwright
-│       └── .env.example          # Credentials template
 ├── configs/
 │   ├── zshrc                     # Shell: 18 Rust CLI aliases + helpers
 │   ├── starship.toml             # Prompt: git, docker, swift, duration
@@ -121,7 +118,7 @@ mac-mini-server/
 | `weekly-cleanup` | Sunday 1 AM | Purge Xcode, npm, simulator caches |
 | `downloads-organize` | 1st of month 2 AM | Sort ~/Downloads into typed folders |
 
-## Nightly Health Report (11 Parts)
+## Nightly Health Report (12 Parts)
 
 | # | Check | Alert Condition |
 |---|-------|-----------------|
@@ -135,7 +132,8 @@ mac-mini-server/
 | 8 | Hammerspoon event summary | Alerts in last 24h |
 | 9 | SMART drive health (Samsung 990 EVO) | Health ≠ PASSED or errors > 0 |
 | 10 | Security (LuLu, BlockBlock, SSH, FileVault) | LuLu not running or SSH failures |
-| 11 | Email report | — |
+| 11 | Mac Mini backup sync (rsync to mit SSD) | mit not mounted or sync errors |
+| 12 | Email report | — |
 
 ## Storage Architecture (Post-Migration)
 
@@ -151,13 +149,17 @@ External SSD "mit" (1TB) — PERSISTENT STATE
 ├── immich/
 │   ├── immich-uploads/     250GB  photos + videos
 │   └── postgres/           3.5GB  database (face embeddings, CLIP vectors, metadata)
-└── orbstack-data/          ~8GB   Docker VM disk (images, volumes, cache)
+├── orbstack-data/          ~8GB   Docker VM disk (images, volumes, cache)
+└── Mac mini/               ~9GB   nightly rsync of Desktop, Documents, Downloads,
+                                    dotfiles, LaunchAgents, server configs
     → Survives machine replacement. Plug into new Mac and go.
 
-Backup HDD "T9" (1TB) — DISASTER RECOVERY
-├── library/                nightly rsync mirror of photo library
-├── db-backups/             nightly pg_dumpall SQL dumps
-└── system-config/          automation scripts, .zshrc, starship, SSH config
+Backup HDD "T9" (2TB) — DISASTER RECOVERY + MEDIA
+├── immich backup/
+│   ├── library/            nightly rsync mirror of photo library
+│   └── db-backups/         nightly pg_dumpall SQL dumps
+├── Songs/                  727 albums, FLAC music library
+└── Content/                movies, shows
     → Recovers from external SSD failure.
 ```
 
@@ -207,7 +209,7 @@ Total recovery time: ~20 minutes (mostly Homebrew installs).
 
 - **Mac mini M4** — 16GB unified memory, 256GB internal SSD
 - **Samsung 990 EVO** — 1TB external SSD (Immich library + Docker state)
-- **Samsung T9** — 1TB portable HDD (nightly backup target)
+- **Samsung T9** — 2TB portable SSD (nightly backup target + media storage)
 - Power draw: ~5W idle, ~$5/year electricity
 
 ## License
